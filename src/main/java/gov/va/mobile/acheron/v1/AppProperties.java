@@ -15,6 +15,7 @@ public class AppProperties {
     private boolean skipAutoSignOn = true;
     private String vistaPingRpc = "XWB IM HERE";
     private String stsToken;
+    private String rpcContext = "CDSP RPC CONTEXT";
 
     public AppProperties(String resourcePath) throws IOException, NullPointerException {
         ClassLoader classLoader = getClass().getClassLoader();

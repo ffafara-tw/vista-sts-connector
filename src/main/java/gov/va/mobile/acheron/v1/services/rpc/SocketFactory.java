@@ -54,8 +54,9 @@ public class SocketFactory {
         
         final Socket socket = new Socket();
         socket.setKeepAlive(true);
-        socket.bind(new InetSocketAddress(localhost, 0));
-        socket.connect(new InetSocketAddress(hostname, port), connectionTimeout);
+        socket.bind(new InetSocketAddress(0));
+        InetSocketAddress target = new InetSocketAddress(hostname, port);
+        socket.connect(target, connectionTimeout);
         socket.setSoTimeout(readTimeout);
         return socket;
     }
