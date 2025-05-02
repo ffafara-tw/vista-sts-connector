@@ -1,0 +1,580 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Cocytus v1",
+    "description": "The Cocytus Service is responsible for executing RPC calls to send and receive VistA data.",
+    "version": "@swagger.contract.version@"
+  },
+  "servers": [
+    {
+      "description": "SQA",
+      "url": "https://staff.apps-staging.va.gov/cocytus/v1"
+    },
+    {
+      "description": "PROD",
+      "url": "https://staff.apps.va.gov/cocytus/v1"
+    }
+  ],
+  "security": [
+    {
+      "JwtKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Cocytus",
+      "description": "Endpoints for executing VistA RPC calls"
+    },
+    {
+      "name": "Admin",
+      "description": "Endpoints for admin information about the Cocytus service"
+    }
+  ],
+  "paths": {
+    "/sites/{site-id}/rpc/{rpc-name}": {
+      "post": {
+        "tags": [
+          "Cocytus"
+        ],
+        "summary": "Execute a VistA RPC against a VistA Site",
+        "description": "VistA RPC execution may require parameters that can be passed in the request body",
+        "operationId": "executeRpc",
+        "parameters": [
+          {
+            "name": "site-id",
+            "in": "path",
+            "description": "The VistA Site to execute the RPC against",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "500"
+          },
+          {
+            "name": "rpc-name",
+            "in": "path",
+            "description": "The name of the RPC to execute",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ORWORDG ALLTREE"
+          }
+        ],
+        "requestBody": {
+          "description": "RPC Request data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RpcRequest"
+              },
+              "example": {
+                "rpcContext": "OR CPRS GUI CHART",
+                "parameters": [
+                  {
+                    "paramType": "LITERAL",
+                    "value": "48813"
+                  },
+                  {
+                    "paramType": "LITERAL",
+                    "value": "100848"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RpcResponse"
+                },
+                "example": {
+                  "data": "1^ALL SERVICES^0^+\r\n2^PHARMACY^1^+\r\n3^INPATIENT MEDICATIONS^2^+\r\n"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Application Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "status": 500,
+                  "traceId": "1e927802e6632112",
+                  "code": 1000,
+                  "message": "Could not execute VistA RPC",
+                  "detail": "rpcName=ORQOR DETAIL, error=M  ERROR=<UNDEFINED>RAD+3^ORQ21 *ORVP\r\nLAST REF=^RADPT(\"AO\",3414) (Error message returned from 'vista-500-v1:9430').",
+                  "source": "500"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site-id}/rpc/transaction": {
+      "post": {
+        "tags": [
+          "Cocytus"
+        ],
+        "summary": "Initiate a new transaction for executing RPC calls against a VistA Site",
+        "operationId": "startTransaction",
+        "parameters": [
+          {
+            "name": "site-id",
+            "in": "path",
+            "description": "The VistA Site to initiate a transaction for",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "500"
+          }
+        ],
+        "requestBody": {
+          "description": "RPC transaction request data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionRequest"
+              },
+              "example": {
+                "rpcContext": "OR CPRS GUI CHART"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponse"
+                },
+                "example": {
+                  "transactionId": "7097dbf3-fed2-48a1-939a-0b571da9193e"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Application Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "status": 400,
+                  "traceId": "8aa0fe105c605776",
+                  "code": 2003,
+                  "message": "Failed to obtain user SSOi token",
+                  "source": "ssoi-sts"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site-id}/rpc/transaction/{transaction-id}": {
+      "delete": {
+        "tags": [
+          "Cocytus"
+        ],
+        "summary": "Terminate an initiated transaction for a VistA Site",
+        "operationId": "endTransaction",
+        "parameters": [
+          {
+            "name": "site-id",
+            "in": "path",
+            "description": "The VistA Site with the initiated transaction to terminate",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "500"
+          },
+          {
+            "name": "transaction-id",
+            "in": "path",
+            "description": "The identifier of the transaction to terminate",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "7097dbf3-fed2-48a1-939a-0b571da9193e"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "default": {
+            "description": "Application Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "status": 400,
+                  "traceId": "a1bb3b3a5681a41c",
+                  "code": 2002,
+                  "message": "VistA site not found",
+                  "siteId": "510",
+                  "source": "Cocytus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/info": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Retrieve VistA RPC metadata",
+        "operationId": "getRpcMetadata",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RpcMetadataResponse"
+                },
+                "example": {
+                  "rpcs": [
+                    {
+                      "name": "ORQOR DETAIL"
+                    },
+                    {
+                      "name": "ORWORDG ALLTREE"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vista/info": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Retrieve configured VistA Site names",
+        "operationId": "getVistaSites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VistaSitesResponse"
+                },
+                "example": {
+                  "sites": [
+                    "500"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "JwtKeyAuth": {
+        "type": "apiKey",
+        "name": "X-VAMF-JWT",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "ApiError": {
+        "required": [
+          "status",
+          "traceId",
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code",
+            "example": 400
+          },
+          "traceId": {
+            "type": "string",
+            "description": "Unique Open Tracing identifier for the HTTP request",
+            "example": "05e7de5e327d2902"
+          },
+          "code": {
+            "type": "integer",
+            "description": "Service-specific error code",
+            "example": 1000
+          },
+          "message": {
+            "type": "string",
+            "description": "Reason for the error",
+            "example": "Could not execute VistA RPC"
+          },
+          "detail": {
+            "type": "string",
+            "description": "Optional details on the cause of the error"
+          },
+          "siteId": {
+            "type": "string",
+            "description": "VistA site associated with the error"
+          },
+          "source": {
+            "type": "string",
+            "description": "System where the error occurred"
+          }
+        }
+      },
+      "RpcRequest": {
+        "type": "object",
+        "description": "RPC Request data wrapper",
+        "properties": {
+          "rpcContext": {
+            "type": "string",
+            "description": "The RPC Context to execute the RPC against",
+            "default": "OR CPRS GUI CHART"
+          },
+          "parameters": {
+            "type": "array",
+            "description": "List of RPC parameters, ordered to match RPC input",
+            "items": {
+              "$ref": "#/components/schemas/Parameter"
+            }
+          },
+          "envelopeSize": {
+            "type": "integer",
+            "description": "The envelope size used when sending RPC requests",
+            "default": 3,
+            "minimum": 3,
+            "maximum": 9
+          },
+          "ssoiToken": {
+            "type": "string",
+            "description": "Optional SSOi token to use in external VistA system authentication. If not provided, the SSOi token will be retrieved from the user session."
+          },
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The transaction identifier used to indicate RPC is in a transaction"
+          },
+          "auditFields": {
+            "description": "Key/value pairs of data to audit for the request",
+            "type": "string",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Parameter": {
+        "required": [
+          "paramType"
+        ],
+        "type": "object",
+        "description": "RPC Parameter base type",
+        "properties": {
+          "paramType": {
+            "type": "string",
+            "description": "Type of Parameter",
+            "enum": [
+              "LITERAL",
+              "REFERENCE",
+              "LIST"
+            ]
+          }
+        },
+        "discriminator": {
+          "propertyName": "paramType",
+          "mapping": {
+            "LITERAL": "#/components/schemas/LiteralParameter",
+            "REFERENCE": "#/components/schemas/ReferenceParameter",
+            "LIST": "#/components/schemas/ListParameter"
+          }
+        }
+      },
+      "LiteralParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Parameter"
+          }
+        ],
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "description": "RPC 'Literal' Parameter type",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "The 'Literal' RPC Parameter value"
+          },
+          "encrypt": {
+            "type": "boolean",
+            "description": "Whether the 'Literal' RPC Parameter value should be encrypted; Default is false",
+            "default": false
+          },
+          "quote": {
+            "type": "boolean",
+            "description": "Whether the 'Literal' RPC Parameter value should be 'quoted' (surrounded by '\"'); Default is false",
+            "default": false
+          }
+        }
+      },
+      "ReferenceParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Parameter"
+          }
+        ],
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "description": "RPC 'Reference' Parameter type",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "The 'Reference' RPC Parameter value"
+          }
+        }
+      },
+      "ListParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Parameter"
+          }
+        ],
+        "type": "object",
+        "description": "'List' RPC Parameter type",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "description": "The 'List' RPC Parameter entries",
+            "items": {
+              "$ref": "#/components/schemas/ListParameterEntry"
+            }
+          },
+          "global": {
+            "type": "boolean",
+            "description": "Whether the 'List' RPC Parameter represents a 'global' list, or 'local' list; Default is false",
+            "default": false
+          }
+        }
+      },
+      "ListParameterEntry": {
+        "required": [
+          "key",
+          "value"
+        ],
+        "type": "object",
+        "description": "'List' RPC Parameter entry",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/LiteralParameter"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Parameter"
+          }
+        }
+      },
+      "RpcResponse": {
+        "type": "object",
+        "description": "RPC Response data wrapper",
+        "properties": {
+          "data": {
+            "type": "string",
+            "description": "The RPC String response"
+          }
+        }
+      },
+      "TransactionRequest": {
+        "type": "object",
+        "description": "RPC Transaction Request data wrapper",
+        "properties": {
+          "rpcContext": {
+            "type": "string",
+            "description": "The RPC Context to execute the RPC transaction against",
+            "default": "OR CPRS GUI CHART"
+          },
+          "ssoiToken": {
+            "type": "string",
+            "description": "Optional SSOi token to use in external VistA system authentication. If not provided, the SSOi token will be retrieved from the user session."
+          }
+        }
+      },
+      "TransactionResponse": {
+        "type": "object",
+        "description": "RPC Transaction Response data wrapper",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The transaction identifier to use in 'executeRpc' requests to use the same transaction"
+          }
+        }
+      },
+      "RpcMetadataResponse": {
+        "type": "object",
+        "description": "RPC Metadata Response data wrapper",
+        "properties": {
+          "rpcs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RpcMetadata"
+            }
+          }
+        }
+      },
+      "RpcMetadata": {
+        "type": "object",
+        "description": "An object describing an RPC",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "VistaSitesResponse": {
+        "type": "object",
+        "properties": {
+          "sites": {
+            "type": "array",
+            "description": "List of configured VistA Site names",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
